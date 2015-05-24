@@ -2,7 +2,7 @@
 var crdt = require('..')
 var assert = require('assert')
 
-exports.test = function (t) {
+exports['test'] = function (t) {
   var next = process.nextTick
   var doc = new (crdt.Doc)
   var set = doc.createSet('type', 'thing')
@@ -33,6 +33,30 @@ exports.test = function (t) {
     assert(set.get(init.id) === undefined)
 
     t.end()
+  })
+
+}
+
+exports['test - with set'] = function (t) {
+  var next = process.nextTick
+  var doc = new crdt.Doc()
+  var hoc = new crdt.Doc()
+  var ds = doc.createStream()
+  var hs = hoc.createStream()
+  ds.pipe(hs).pipe(ds)
+
+  doc.add({id: '1', type: 'thing'})
+
+  var things = doc.createSet('type', 'thing');
+
+  next(function () {
+    assert.deepEqual(doc.toJSON(), hoc.toJSON())
+    doc.rm('1');
+    next(function () {
+      assert.deepEqual(doc.toJSON(), hoc.toJSON())
+
+      t.end()
+    })
   })
 
 }
